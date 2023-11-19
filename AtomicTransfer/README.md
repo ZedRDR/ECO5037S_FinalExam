@@ -34,8 +34,6 @@ https://dispenser.testnet.aws.algodev.network/
 Escrow Account (Pre-funded):
 Address: 4J22EFWCMWEDRK4MTEFUXWD5WQ5ZSPMI5LROSYOIBHBISXIUPQVOJLB5FA
 Private Key: +ISj6hwhHxlHzv5b32Ww8FmYhlQUvqrJZaggp5FPifzidaIWwmWIOKuMmQtL2H20O5k9iOri6WHICcKJXRR8Kg==
-Mnemonic: (Not provided for security reasons)
-This account is used to top up other accounts in the script.
 
 # Transaction Flow
 1. Create and Fund Account B:
