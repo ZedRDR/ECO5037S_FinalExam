@@ -1,3 +1,7 @@
+# This was the initial script used to create the escrow account.
+# The escrow account is being used to funds accounts in the other scripts to avoid manual dispensing
+# Do not run this script. The first output, which is the account address and private key has been hardcoded on the other scripts
+
 from algosdk import account, mnemonic
 from algosdk import transaction
 from algosdk.v2client import algod

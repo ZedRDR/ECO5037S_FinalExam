@@ -20,9 +20,9 @@ def main():
     #####################################################################
     # Create accounts for buyer and seller
     #####################################################################
-    # Each account must have a minimum of 200,000 micro Algos to transact
+    # Note: Each account must have a minimum of 200,000 micro Algos to transact
 
-    # Fetch account info of a predefined account (example)
+    # Fetch account info of a predefined account 
     accountE = '4J22EFWCMWEDRK4MTEFUXWD5WQ5ZSPMI5LROSYOIBHBISXIUPQVOJLB5FA'
     try:
         account_info = algod_client.account_info(accountE)
@@ -64,10 +64,8 @@ def main():
     print(f"Transaction information: {json.dumps(txn_result, indent=4)}")
     print(f"Decoded note: {b64decode(txn_result['txn']['txn']['note'])}")
 
-    # Add here the logic to fund the new account using your prefunded account
-    # This typically involves creating and sending a transaction
 
-# Top up seller
+    # Top up seller
     params = algod_client.suggested_params()
     unsigned_txn = transaction.PaymentTxn(
         sender=accountE,
@@ -88,8 +86,6 @@ def main():
     print(f"Transaction information: {json.dumps(txn_result, indent=4)}")
     print(f"Decoded note: {b64decode(txn_result['txn']['txn']['note'])}")
 
-    # Add here the logic to fund the new account using your prefunded account
-    # This typically involves creating and sending a transaction
 
     #Display ballances
 
@@ -126,7 +122,7 @@ def main():
     try:
         txn_result = transaction.wait_for_confirmation(algod_client, txid, 4)
         results = algod_client.pending_transaction_info(txid)
-        assetID = results.get("asset-index")  # Use .get() to avoid KeyError
+        assetID = results.get("asset-index")  
         if assetID is not None:
             print("assetID: ", assetID)
         else:
@@ -198,7 +194,7 @@ def main():
         results = algod_client.pending_transaction_info(txid)
 
         # Extract the asset ID, if available
-        assetID = results.get("asset-index")  # Use .get() to avoid KeyError
+        assetID = results.get("asset-index")  
         if assetID is not None:
             print("assetID: ", assetID)
         else:

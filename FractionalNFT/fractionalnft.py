@@ -24,33 +24,42 @@ def main():
 
     # Fetch account info of a predefined account (example)
     accountE = '4J22EFWCMWEDRK4MTEFUXWD5WQ5ZSPMI5LROSYOIBHBISXIUPQVOJLB5FA'
+    accountE_privatekey = '+ISj6hwhHxlHzv5b32Ww8FmYhlQUvqrJZaggp5FPifzidaIWwmWIOKuMmQtL2H20O5k9iOri6WHICcKJXRR8Kg=='
     try:
         account_info = algod_client.account_info(accountE)
         print(f"Escrow Account balance: {account_info.get('amount')} microAlgos")
     except Exception as e:
         print(f"An error occurred: {e}")
 
-    # Generate 2 new accounts
-    # Generate Account B for Seller of NFT
-    accountB = algokit.Account.new_account()
-    print("Seller address: ", accountB.address)
 
+    # Generate 3 new accounts
+    
+    # Generate Account B for Seller of NFT
+    
     # Generate Account A for Buyer of NFT
     accountA = algokit.Account.new_account()
-    print("Buyer address: ", accountA.address)
+    print("Sizwe's address: ", accountA.address)
+    
+    accountB = algokit.Account.new_account()
+    print("Bob's address: ", accountB.address)
+
+    accountC = algokit.Account.new_account()
+    print("Zaheer's address: ", accountC.address)
+
 
     #####################################################################
-    # Fund the buyer and sellers accounts from escrow account
+    # We have to fund the 3 new accounts so that they can cover the transaction cost
+    # And have a minimum balance
     #####################################################################
 
-    # Top up buyer
+    # Top up Sizwe, account A
     params = algod_client.suggested_params()
     unsigned_txn = transaction.PaymentTxn(
         sender=accountE,
         sp=params,
         receiver=accountA.address,
-        amt=5202000,
-        note=b"Top up Buyer",
+        amt=202000,
+        note=b"Top up account A"
     )
 
     signed_txn = unsigned_txn.sign('+ISj6hwhHxlHzv5b32Ww8FmYhlQUvqrJZaggp5FPifzidaIWwmWIOKuMmQtL2H20O5k9iOri6WHICcKJXRR8Kg==')
@@ -64,20 +73,18 @@ def main():
     print(f"Transaction information: {json.dumps(txn_result, indent=4)}")
     print(f"Decoded note: {b64decode(txn_result['txn']['txn']['note'])}")
 
-    # Add here the logic to fund the new account using your prefunded account
-    # This typically involves creating and sending a transaction
 
-# Top up seller
+    # Top up Bob, account B
     params = algod_client.suggested_params()
     unsigned_txn = transaction.PaymentTxn(
         sender=accountE,
         sp=params,
         receiver=accountB.address,
         amt=202000,
-        note=b"Top up Seller",
+        note=b"Top up account B",
     )
 
-    signed_txn = unsigned_txn.sign('+ISj6hwhHxlHzv5b32Ww8FmYhlQUvqrJZaggp5FPifzidaIWwmWIOKuMmQtL2H20O5k9iOri6WHICcKJXRR8Kg==')
+    signed_txn = unsigned_txn.sign(accountE_privatekey)
 
     txid = algod_client.send_transaction(signed_txn)
     print("Successfully submitted transaction with txID: {}".format(txid))
@@ -88,13 +95,29 @@ def main():
     print(f"Transaction information: {json.dumps(txn_result, indent=4)}")
     print(f"Decoded note: {b64decode(txn_result['txn']['txn']['note'])}")
 
-    # Add here the logic to fund the new account using your prefunded account
-    # This typically involves creating and sending a transaction
+
+    # Top up Zaheer, account C
+    params = algod_client.suggested_params()
+    unsigned_txn = transaction.PaymentTxn(
+        sender=accountE,
+        sp=params,
+        receiver=accountC.address,
+        amt=202000,
+        note=b"Top up account C",
+    )
+
+    signed_txn = unsigned_txn.sign(accountE_privatekey)
+
+    txid = algod_client.send_transaction(signed_txn)
+    print("Successfully submitted transaction with txID: {}".format(txid))
+
+    # wait for confirmation
+    txn_result = transaction.wait_for_confirmation(algod_client, txid, 4)
+
+    print(f"Transaction information: {json.dumps(txn_result, indent=4)}")
+    print(f"Decoded note: {b64decode(txn_result['txn']['txn']['note'])}")
 
     #Display ballances
-
-    account_info = algod_client.account_info(accountE)
-    print(f"Escrow Account balance: {account_info.get('amount')} microAlgos")
     
     account_info = algod_client.account_info(accountA.address)
     print(f"Buyer Account balance: {account_info.get('amount')} microAlgos")
@@ -102,22 +125,25 @@ def main():
     account_info = algod_client.account_info(accountB.address)
     print(f"Seller Account balance: {account_info.get('amount')} microAlgos")
 
+    account_info = algod_client.account_info(accountC.address)
+    print(f"Escrow Account balance: {account_info.get('amount')} microAlgos")
 
     #####################################################################
-    # Create ASA for seller
+    # Create ASA from the Escrow account
     #####################################################################
 
-   # accountB (Seller) create 2 ASA (Algorand Standard Asset, token, asset, NFT, etc.)
+    # Escrow create 1 ASA (Algorand Standard Asset, token, asset, NFT, etc.)
     unsigned_tx = algosdk.transaction.AssetCreateTxn(
-        sender=accountB.address,
+        sender=accountE,
         sp=algod_client.suggested_params(),
-        total=2,
-        decimals=0,
-        default_frozen=False
+        total=10,
+        decimals=1, #This is important and means that the ASA can be divided into 10 parts. Its fractional
+        default_frozen=False,
+        asset_name="10 pieces of a cake"
     )
 
     # sign transaction
-    signed_txn = unsigned_tx.sign(accountB.private_key)
+    signed_txn = unsigned_tx.sign(accountE_privatekey)
 
     # submit transaction
     txid = algod_client.send_transaction(signed_txn)
@@ -126,7 +152,7 @@ def main():
     try:
         txn_result = transaction.wait_for_confirmation(algod_client, txid, 4)
         results = algod_client.pending_transaction_info(txid)
-        assetID = results.get("asset-index")  # Use .get() to avoid KeyError
+        assetID = results.get("asset-index")  
         if assetID is not None:
             print("assetID: ", assetID)
         else:
@@ -135,14 +161,18 @@ def main():
         print(f"An error occurred: {e}")
 
     # get info about accountB from algod
-    pprint(algod_client.account_info(accountB.address))
+    pprint(algod_client.account_info(accountE))
 
     # print the assetID of my new asset from algod
     results = algod_client.pending_transaction_info(txid)
     assetID = results["asset-index"]
     print("assetID: ", assetID) 
 
-    # Buyer opts into the ASA
+    #####################################################################
+    # Other accounts opt-in to the NFT
+    #####################################################################
+
+    # Account A opts into the ASA
     unsigned_txn = algosdk.transaction.AssetTransferTxn(
         sender=accountA.address,
         sp=algod_client.suggested_params(),
@@ -155,81 +185,102 @@ def main():
     txid = algod_client.send_transaction(signed_txn)
     print("Transaction ID (opt-in to ASA): {}".format(txid))
 
-    #####################################################################
-    # Atomic Transfer between Account A and Account B
-    #####################################################################
-
-    # Account A sends 5 Algo to Account B
-    payment_txn_A = algosdk.transaction.PaymentTxn(
-        sender=accountA.address,
-        sp=algod_client.suggested_params(),
-        receiver=accountB.address,
-        amt=5_000_000
-    )
-
-    # Account B sends 2 ASA to Account A
-    transfer_txn_B = algosdk.transaction.AssetTransferTxn(
+    # Account B opts into the ASA
+    unsigned_txn = algosdk.transaction.AssetTransferTxn(
         sender=accountB.address,
         sp=algod_client.suggested_params(),
-        receiver=accountA.address,
-        amt=2,
+        receiver=accountB.address,
+        amt=0,
         index=assetID,
     )
 
-    # Group the transactions
-    group_id = algosdk.transaction.calculate_group_id([payment_txn_A, transfer_txn_B])
-    payment_txn_A.group = group_id
-    transfer_txn_B.group = group_id
+    signed_txn = unsigned_txn.sign(accountB.private_key)
+    txid = algod_client.send_transaction(signed_txn)
+    print("Transaction ID (opt-in to ASA): {}".format(txid))
 
-    # Sign the transactions
-    signed_txn_A = payment_txn_A.sign(accountA.private_key)
-    signed_txn_B = transfer_txn_B.sign(accountB.private_key)
+    # Account C opts into the ASA
+    unsigned_txn = algosdk.transaction.AssetTransferTxn(
+            sender=accountC.address,
+            sp=algod_client.suggested_params(),
+            receiver=accountC.address,
+            amt=0,
+            index=assetID,
+        )
 
-    # Submit the atomic group
-    txid = algod_client.send_transactions([signed_txn_A, signed_txn_B])
-    print("Transaction ID (atomic transfer): {}".format(txid))
-
-    # Wait for the atomic transfer to be confirmed
-    try:
-        # Wait for the transaction to be confirmed
-        txn_result = transaction.wait_for_confirmation(algod_client, txid, 4)
-
-        # After confirmation, get the pending transaction information
-        results = algod_client.pending_transaction_info(txid)
-
-        # Extract the asset ID, if available
-        assetID = results.get("asset-index")  # Use .get() to avoid KeyError
-        if assetID is not None:
-            print("assetID: ", assetID)
-        else:
-            print("Asset index not found in the transaction information.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    pprint(algod_client.account_info(accountA.address))
-    pprint(algod_client.account_info(accountB.address))
-
-    def print_asset_holders(algod_client, asset_id, account_addresses):
-        for address in account_addresses:
-            account_info = algod_client.account_info(address)
-            assets = account_info.get('assets', [])
-            for asset in assets:
-                if asset['asset-id'] == asset_id:
-                    print(f"Account {address} holds {asset['amount']} of asset {asset_id}")
+    signed_txn = unsigned_txn.sign(accountC.private_key)
+    txid = algod_client.send_transaction(signed_txn)
+    print("Transaction ID (opt-in to ASA): {}".format(txid))            
 
 
-    print_asset_holders(algod_client, assetID, [accountA.address, accountB.address])
+    #####################################################################
+    # Send fractional NFT
+    #####################################################################
 
+    # Send fractional NFT to Account A
+    unsigned_txn = algosdk.transaction.AssetTransferTxn(
+        sender=accountE,
+        sp=algod_client.suggested_params(),
+        receiver=accountA.address,
+        amt=1,
+        index=assetID
+    )
+    signed_txn = unsigned_txn.sign(accountE_privatekey)
+    txid = algod_client.send_transaction(signed_txn)
+    print("Transaction ID (send fractional NFT to Account A): {}".format(txid))
 
-    print("Final result:")
+    # Wait for confirmation 
+    transaction.wait_for_confirmation(algod_client, txid, 4)
 
-    account_info = algod_client.account_info(accountA.address)
-    print(f"Buyer Account balance: {account_info.get('amount')} microAlgos")
-    
-    account_info = algod_client.account_info(accountB.address)
-    print(f"Seller Account balance: {account_info.get('amount')} microAlgos")
+    # Send fractional NFT to Account B
+    unsigned_txn = algosdk.transaction.AssetTransferTxn(
+        sender=accountE,
+        sp=algod_client.suggested_params(),
+        receiver=accountB.address,
+        amt=1,
+        index=assetID
+    )
+    signed_txn = unsigned_txn.sign(accountE_privatekey)
+    txid = algod_client.send_transaction(signed_txn)
+    print("Transaction ID (send fractional NFT to Account B): {}".format(txid))
 
-    print(f"The ASA with ID {assetID} is now owned by the seller.")
+    transaction.wait_for_confirmation(algod_client, txid, 4)
+
+    # Send fractional NFT to Account C
+    unsigned_txn = algosdk.transaction.AssetTransferTxn(
+        sender=accountE,
+        sp=algod_client.suggested_params(),
+        receiver=accountC.address,
+        amt=1,
+        index=assetID
+    )
+    signed_txn = unsigned_txn.sign(accountE_privatekey)
+    txid = algod_client.send_transaction(signed_txn)
+    print("Transaction ID (send fractional NFT to Account C): {}".format(txid))
+
+    transaction.wait_for_confirmation(algod_client, txid, 4)
+
+    #####################################################################
+    # Display ownership of NFT
+    #####################################################################
+
+    def check_and_display_ownership(algod_client, accounts, asset_id):
+        for account in accounts:
+            try:
+                account_info = algod_client.account_info(account)
+                assets = account_info.get('assets', [])
+                found = False
+                for asset in assets:
+                    if asset['asset-id'] == asset_id:
+                        print(f"Account {account} holds {asset['amount']} of 10 units of asset {asset_id}")
+                        found = True
+                        break
+                if not found:
+                    print(f"Account {account} does not hold any units of asset {asset_id}")
+            except Exception as e:
+                print(f"An error occurred while fetching account info for {account}: {e}")
+
+    asset_accounts = [accountA.address, accountB.address, accountC.address, accountE]
+    check_and_display_ownership(algod_client, asset_accounts, assetID)
 
 if __name__ == "__main__":
     main()

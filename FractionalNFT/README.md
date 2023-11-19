@@ -3,14 +3,14 @@ Algorand Python scripts
 
 # Algorand atomic transfer using Algokit
 # Overview
-This script demonstrates an atomic transfer on the Algorand blockchain using Python. It includes the creation of two accounts (A and B), the creation of an Algorand Standard Asset (ASA), and the execution of an atomic transfer where Account A (Buyer) sends ALGO to Account B (seller), and Account B (seller) sends ASA units back to Account A (buyer).
+This script showcases how to issue and distribute fractional NFTs (Non-Fungible Tokens) on the Algorand blockchain using Python. The script includes generating new accounts, creating a fractional NFT, distributing fractions of this NFT to different accounts, and verifying the ownership of these fractional NFTs.
 
 # Features
-Account Creation: Generate two new accounts (A and B) for the transaction.
-Funding Accounts: Utilize a pre-funded escrow account to provide initial funds to both accounts.
-ASA Creation: Account B creates an ASA.
-Opt-in to ASA: Account A opts into the ASA created by Account B.
-Atomic Transfer: Simultaneous transfer of ALGO from Account A to Account B and ASA units from Account B to Account A.
+Account Creation: Generates three new accounts in addition to an existing escrow account.
+Funding Accounts: Utilizes a pre-funded escrow account to provide initial funds to the new accounts.
+Fractional NFT Creation: Creates a fractional NFT (named "10 pieces of a cake") from the escrow account, which can be divided into ten parts.
+NFT Distribution: Distributes parts of the fractional NFT to the three new accounts.
+Ownership Verification: Checks and displays each account's ownership of the fractional NFT, indicating the number of units held or if an account holds no units.
 
 # Requirements
 Python 3.x
@@ -38,19 +38,17 @@ Mnemonic: (Not provided for security reasons)
 This account is used to top up other accounts in the script.
 
 # Transaction Flow
-1. Create and Fund Account B:
+1. Create and Fund New Accounts:
+    Generates new accounts and funds them using the escrow account.
+2. Create Fractional NFT:
+    The escrow account creates a fractional NFT divisible into ten parts.
+3. Distribute Fractional NFT:
+    Distributes one-tenth of the NFT to each of the three new accounts.
+4. Verify Ownership:
+    Verifies and prints each account's holdings of the fractional NFT.
 
-Account B is generated and funded using the escrow account.
-Account B creates an ASA.
-
-2. Create and Fund Account A:
-Account A is generated and funded.
-Account A opts into the ASA created by Account B.
-
-3. Execute Atomic Transfer:
-Account A sends 5 Algo to Account B.
-Account B sends 2 units of the ASA to Account A.
-The transfer is atomic, ensuring both transactions occur simultaneously.
+Output:
+    The script outputs transaction details, account balances, and verifies the fractional NFT's distribution. It displays the ownership status of the NFT for each account.
 
 # Output
 The script outputs transaction details, account balances, and the final status of ASA ownership.
