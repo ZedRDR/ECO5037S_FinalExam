@@ -20,7 +20,7 @@ def main():
     #####################################################################
     # Create accounts for buyer and seller
     #####################################################################
-
+    # Each account must have a minimum of 200,000 micro Algos to transact
 
     # Fetch account info of a predefined account (example)
     accountE = '4J22EFWCMWEDRK4MTEFUXWD5WQ5ZSPMI5LROSYOIBHBISXIUPQVOJLB5FA'
@@ -49,7 +49,7 @@ def main():
         sender=accountE,
         sp=params,
         receiver=accountA.address,
-        amt=1000000,
+        amt=5202000,
         note=b"Top up Buyer",
     )
 
@@ -73,7 +73,7 @@ def main():
         sender=accountE,
         sp=params,
         receiver=accountB.address,
-        amt=1000000,
+        amt=202000,
         note=b"Top up Seller",
     )
 
@@ -107,11 +107,11 @@ def main():
     # Create ASA for seller
     #####################################################################
 
-   # accountC create 3 ASA (Algorand Standard Asset, token, asset, NFT, etc.)
+   # accountB (Seller) create 2 ASA (Algorand Standard Asset, token, asset, NFT, etc.)
     unsigned_tx = algosdk.transaction.AssetCreateTxn(
         sender=accountB.address,
         sp=algod_client.suggested_params(),
-        total=1,
+        total=2,
         decimals=0,
         default_frozen=False
     )
@@ -164,7 +164,7 @@ def main():
         sender=accountA.address,
         sp=algod_client.suggested_params(),
         receiver=accountB.address,
-        amt=500_000
+        amt=5_000_000
     )
 
     # Account B sends 2 ASA to Account A
@@ -172,7 +172,7 @@ def main():
         sender=accountB.address,
         sp=algod_client.suggested_params(),
         receiver=accountA.address,
-        amt=1,
+        amt=2,
         index=assetID,
     )
 
